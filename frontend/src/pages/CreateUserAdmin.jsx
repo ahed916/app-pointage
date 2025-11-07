@@ -126,6 +126,7 @@ export default function CreateUserAdmin() {
               placeholder="Enter CIN number"
               value={form.CIN}
               onValueChange={(v) => handleChange("CIN", v)}
+              isRequired
             />
 
             <Input
@@ -133,6 +134,7 @@ export default function CreateUserAdmin() {
               placeholder="Enter phone number"
               value={form.phone}
               onValueChange={(v) => handleChange("phone", v)}
+              isRequired
             />
 
             <Select
