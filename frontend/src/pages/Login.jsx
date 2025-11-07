@@ -13,7 +13,7 @@ function Login() {
         className="flex flex-col lg:flex-row w-full max-w-6xl h-[650px] bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden border border-gray-200"
       >
         {/*left side*/}
-        <div className="lg:w-7/12 w-full bg-gradient-to-br from-blue-700 to-indigo-800 text-white flex flex-col justify-center items-center relative p-10">
+        <div className="lg:w-7/12 w-full bg-gradient-to-br from-blue-300 to-indigo-800 text-white flex flex-col justify-center items-center relative p-10">
           
           {/*decoration*/}
           <div className="absolute -top-20 -left-20 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
@@ -88,9 +88,7 @@ function Login() {
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Mot de passe
                 </label>
-                <a href="#" className="text-sm font-semibold text-blue-600 hover:text-blue-500">
-                  Forgot password?
-                </a>
+               
               </div>
               <input
                 id="password"
@@ -101,13 +99,16 @@ function Login() {
                 placeholder="Your password"
                 className="mt-2 w-full rounded-lg border border-gray-300 bg-white/80 px-4 py-2.5 text-gray-900 placeholder-gray-400 shadow-sm focus:border-blue-600 focus:ring-2 focus:ring-blue-500 transition duration-200"
               />
+               <a href="#" className="text-sm font-semibold text-blue-600 hover:text-blue-500">
+                  Forgot password?
+                </a>
             </div>
 
             {/* Button */}
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-300"
+              className="w-full py-2.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-600 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-300"
             >
               Connect
             </motion.button>

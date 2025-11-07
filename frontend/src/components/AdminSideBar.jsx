@@ -1,51 +1,94 @@
-import { ChevronFirst, MoreVertical,ChevronLast} from 'lucide-react'
-import React, { createContext, useState, useContext } from 'react'
+import { ChevronFirst, ChevronLast, MoreVertical } from "lucide-react";
+import React, { createContext, useState, useContext } from "react";
+import { NavLink } from "react-router-dom";
 import isimmLogo from "../assets/isimmLogo.png";
-const SidebarContext=createContext()
-export default function AdminSideBar({children}) {
-    const [expanded,setExpanded]=useState(true)
-    return (
-        <>
-            <aside className='h-screen'>
-                <nav className='h-full flex flex-col bg-white border-r'>
-                    <div className='p-4 pb-2 flex justify-between items-center'>
-                        <img src={isimmLogo} alt="ISIMM Logo" className={`overflow-hidden transition-all ${expanded ? "w-20":"w-0"}`}/>
-                        <button onClick={()=>setExpanded((curr)=>!curr)} className='p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100'>
-                            {expanded ? <ChevronFirst/> : <ChevronLast /> }
-                        </button>
 
-                    </div>
-                    <SidebarContext.Provider value={{expanded}}>
-                    <ul className='flex-1 px-3'> {children}</ul>
-                    </SidebarContext.Provider>
-                    <div className='border-t flex p-3'>
-                        <img src={isimmLogo} className='w-10 h-10 rounded-md'/>
-                        <div className={`flex justify-between items-center overflow-hidden transition-all ${expanded ? "w-52 ml-3":"w-0"} `}>
-                            <div className='leading-4'>
-                                <h4 className='font-semibold'>Smart Attendance System</h4>
-                                <span className='text-xs text-gray-600'>smartAttendance@isimm.tn</span>
-                            </div>
-                            <MoreVertical size={20}/>
-                        </div>
-                    </div>
-                </nav>
-            </aside>
+const SidebarContext = createContext();
 
-        </>
-    )
-} 
-export function AdminSideBarItems({icon,text,active,alert}){
-    const {expanded} =useContext(SidebarContext)
-    return(
-        <li className={`relative flex items-center py-2 px-3 my-1 font-medium rounded-md cursor-pointer transition-colors group ${active ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800":"hover:bg-indigo-50 text-gray-600"}`}>
-            {icon}
-            <span className={`overflow-hidden transition-all ${expanded ? "w-52 ml-3": "w-0"}`}>{text}</span>
+export default function AdminSideBar({ children }) {
+  const [expanded, setExpanded] = useState(true);
 
-            {!expanded &&(
-                <div className={`absolute left-full rounded-md px-2 py-1 ml-6 bg-indigo-100 text-indigo-800 text-sm invisible opacity-20 -translate-x-3 transition-all group-hover:visible group-hover:opacity-100 group-hover:translate-x-0`}>
-                    {text}
-                </div>
+  return (
+    <aside className="h-screen flex flex-col shadow-lg">
+      <nav className="relative h-full flex flex-col text-white bg-gradient-to-br from-blue-300 to-indigo-800 overflow-hidden">
+        {/* Decorative blurred circles */}
+        <div className="absolute -top-20 -left-20 w-60 h-60 bg-white/10 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl"></div>
+
+        {/* Header */}
+        <div className="p-4 pb-2 flex justify-between items-center relative z-10">
+          <img
+            src={isimmLogo}
+            alt="ISIMM Logo"
+            className={`transition-all rounded-md duration-300 ${
+              expanded ? "w-20 opacity-100" : "w-0 opacity-0"
+            }`}
+          />
+          <button
+            onClick={() => setExpanded((curr) => !curr)}
+            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+          >
+            {expanded ? (
+              <ChevronFirst className="text-white" />
+            ) : (
+              <ChevronLast className="text-white" />
             )}
-        </li>
-    )
+          </button>
+        </div>
+
+        {/* Items */}
+        <SidebarContext.Provider value={{ expanded }}>
+          <ul className="flex-1 overflow-y-auto px-3 space-y-1 relative z-10">
+            {children}
+          </ul>
+        </SidebarContext.Provider>
+
+        {/* Footer */}
+        <div className="border-t border-white/20 flex items-center gap-3 p-3 relative z-10 bg-white/5">
+          <img src={isimmLogo} className="w-10 h-10 rounded-lg" />
+          <div
+            className={`flex justify-between items-center transition-all duration-300 overflow-hidden ${
+              expanded ? "w-52 opacity-100" : "w-0 opacity-0"
+            }`}
+          >
+            <div className="leading-tight">
+              <h4 className="font-semibold text-sm">Smart Attendance System</h4>
+              <span className="text-xs text-white/80">
+                smartAttendance@isimm.tn
+              </span>
+            </div>
+            <MoreVertical size={18} className="text-white/70" />
+          </div>
+        </div>
+      </nav>
+    </aside>
+  );
+}
+
+export function AdminSideBarItems({ icon, text, to }) {
+  const { expanded } = useContext(SidebarContext);
+
+  return (
+    <li>
+      <NavLink
+        to={to}
+        className={({ isActive }) =>
+          `flex items-center gap-3 p-2 rounded-xl transition-all duration-200 ${
+            isActive
+              ? "bg-white/20 text-white font-semibold"
+              : "hover:bg-white/10 text-white/80"
+          }`
+        }
+      >
+        <div className="flex-shrink-0">{icon}</div>
+        <span
+          className={`overflow-hidden transition-all duration-300 ${
+            expanded ? "w-40 opacity-100" : "w-0 opacity-0"
+          }`}
+        >
+          {text}
+        </span>
+      </NavLink>
+    </li>
+  );
 }

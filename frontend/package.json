@@ -12,17 +12,19 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@heroui/input": "^2.4.28",
+    "@heroui/react": "^2.8.5",
     "@heroui/system": "^2.4.23",
+    "@heroui/table": "^2.2.27",
     "@heroui/theme": "^2.4.23",
     "@hookform/resolvers": "^5.2.2",
-    "@tailwindcss/vite": "^4.1.16",
+    "@tailwindcss/vite": "^4.1.17",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.552.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.65.0",
     "react-router-dom": "^7.9.5",
-    "tailwindcss": "^4.1.16",
+    "tailwindcss": "^4.1.17",
     "zod": "^4.1.12"
   },
   "devDependencies": {
