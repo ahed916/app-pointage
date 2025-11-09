@@ -1,6 +1,4 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableHeader,
@@ -14,10 +12,10 @@ import {
   Dropdown,
   DropdownMenu,
   DropdownItem,
-  Chip,
   User,
   Pagination,
 } from "@heroui/react";
+import { useNavigate } from "react-router-dom";
 
 export const columns = [
   {name: "ID", uid: "id", sortable: true},
@@ -31,48 +29,6 @@ export const columns = [
 export const roleOptions = [
   {name: "Professor", uid: "Professor"},
   {name: "Student", uid: "Student"},
-  
-];
-
-export const users = [
-  {
-    id: 1,
-    name: "Tony Reichert",
-    role: "Professor",
-    classes: "",
-    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026024d",
-    email: "tony.reichert@example.com",
-  },
-  {
-    id: 2,
-    name: "Zoey Lang",
-    role: "Professor",
-    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
-    email: "zoey.lang@example.com",
-  },
-  {
-    id: 3,
-    name: "Jane Fisher",
-    role: "Professor",
-    avatar: "https://i.pravatar.cc/150?u=a04258114e29026702d",
-    email: "jane.fisher@example.com",
-  },
-  {
-    id: 4,
-    name: "William Howard",
-    role: "Student",
-    avatar: "https://i.pravatar.cc/150?u=a048581f4e29026701d",
-    email: "william.howard@example.com",
-  },
-  {
-    id: 5,
-    name: "Kristen Copper",
-    role: "Student",
-    avatar: "https://i.pravatar.cc/150?u=a092581d4ef9026700d",
-    email: "kristen.cooper@example.com",
-  },
-  
-  
 ];
 
 export function capitalize(s) {
@@ -179,16 +135,13 @@ export const ChevronDownIcon = ({strokeWidth = 1.5, ...otherProps}) => {
   );
 };
 
-const statusColorMap = {
-  active: "success",
-  paused: "danger",
-  vacation: "warning",
-};
-
 const INITIAL_VISIBLE_COLUMNS = ["id", "name", "role", "classes","email",  "actions"];
 
 export default function AdminUserTable() {
   const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
   const [filterValue, setFilterValue] = React.useState("");
   const [selectedKeys, setSelectedKeys] = React.useState(new Set([]));
   const [visibleColumns, setVisibleColumns] = React.useState(new Set(INITIAL_VISIBLE_COLUMNS));
@@ -199,6 +152,22 @@ export default function AdminUserTable() {
     direction: "ascending",
   });
   const [page, setPage] = React.useState(1);
+
+  // Fetch users from backend
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/users/");
+        const data = await res.json();
+        setUsers(data);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   const hasSearchFilter = Boolean(filterValue);
 
@@ -262,15 +231,8 @@ export default function AdminUserTable() {
         return (
           <div className="flex flex-col">
             <p className="text-bold text-small capitalize">{cellValue}</p>
-            <p className="text-bold text-tiny capitalize text-default-400">{user.team || ""}</p>
           </div>
         );
-      /*case "status":
-        return (
-          <Chip className="capitalize" color={statusColorMap[user.status]} size="sm" variant="flat">
-            {cellValue}
-          </Chip>
-        );*/
       case "actions":
         return (
           <div className="relative flex justify-end items-center gap-2">
@@ -440,6 +402,14 @@ export default function AdminUserTable() {
     );
   }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
 
+  if (loading) {
+    return (
+      <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
+        <p>Loading users...</p>
+      </div>
+    );
+  }
+
   return (
     <Table
       isHeaderSticky
@@ -478,4 +448,3 @@ export default function AdminUserTable() {
     </Table>
   );
 }
-

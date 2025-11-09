@@ -1,7 +1,6 @@
-bcrypt
-cryptography
 fastapi
-python-jose
-python-multipart
 uvicorn
-passlib
+supabase==2.6.0
+python-dotenv
+bcrypt
+python-multipart

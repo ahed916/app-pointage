@@ -1,9 +1,26 @@
 import React from 'react';
 import AdminSideBar, { AdminSideBarItems } from "../components/AdminSideBar";
 import { LayoutDashboard, Users, Clipboard } from "lucide-react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
 function AdminLayout() {
+  const location = useLocation();
+  const [loading, setLoading] = React.useState(true);
+
+  // Simulate loading delay (optional — helps see the fix)
+  React.useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 300);
+    return () => clearTimeout(timer);
+  }, [location]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar stays fixed */}

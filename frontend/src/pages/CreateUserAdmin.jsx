@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from "react"; 
 import {
   Input,
   Button,
@@ -15,19 +15,22 @@ import { CameraIcon } from "lucide-react";
 
 export default function CreateUserAdmin() {
   const navigate = useNavigate();
+
   const [form, setForm] = useState({
-    name: "",
+    nom: "",           // Changed from "name" to "nom"
     email: "",
     CIN: "",
-    phone: "",
+    telephone: "",     // Changed from "phone" to "telephone"
+    password: "",
     role: "",
-    classId: "",
+    classe_id: "",     // Changed from "classId" to "classe_id"
     classes: [],
     subjects: [],
     photo: null,
   });
 
   const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const allClasses = [
     { id: "L2INFO-TD1", name: "L2INFO-TD1", subjects: ["Java", "Conception", "AI"] },
@@ -54,17 +57,45 @@ export default function CreateUserAdmin() {
     const file = e.target.files[0];
     if (file) {
       setForm({ ...form, photo: file });
-      setPreview(URL.createObjectURL(file)); // Show preview
+      setPreview(URL.createObjectURL(file));
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("User created:", form);
-    navigate("/admin/user-management-admin");
+    setLoading(true);
+
+    const formData = new FormData();
+    Object.keys(form).forEach((key) => {
+      if (key === "classes" || key === "subjects") {
+        formData.append(key, JSON.stringify(form[key])); // Send as JSON string
+      } else {
+        formData.append(key, form[key]); // Send as string/value
+      }
+    });
+
+    try {
+      const res = await fetch("http://localhost:8000/users/create", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.detail || "Error creating user");
+      } else {
+        alert("✅ User created successfully!");
+        navigate("/admin/user-management-admin");
+      }
+    } catch (err) {
+      alert("Server error.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const selectedClass = allClasses.find((cls) => cls.id === form.classId);
+  const selectedClass = allClasses.find((cls) => cls.id === form.classe_id); // Updated variable name
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -78,13 +109,12 @@ export default function CreateUserAdmin() {
             User Information
           </h2>
 
-          {/* Profile photo upload */}
           <div className="relative">
             <label htmlFor="photo-upload" className="cursor-pointer group">
               <div className="relative">
                 <Avatar
                   src={preview || "https://via.placeholder.com/150"}
-                  className="w-32 h-32 text-large border-4 border-gray-200 rounded-full object-cover"
+                  className="w-32 h-32 text-large border-4 border-gray-200 rounded-full"
                 />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                   <CameraIcon className="text-white w-8 h-8" />
@@ -107,17 +137,26 @@ export default function CreateUserAdmin() {
             <Input
               label="Full Name"
               placeholder="Enter user's name"
-              value={form.name}
-              onValueChange={(v) => handleChange("name", v)}
+              value={form.nom}  // Updated to use "nom"
+              onValueChange={(v) => handleChange("nom", v)}  // Updated to update "nom"
               isRequired
             />
 
             <Input
               label="Email"
               type="email"
-              placeholder="Enter user's email"
+              placeholder="Enter email"
               value={form.email}
               onValueChange={(v) => handleChange("email", v)}
+              isRequired
+            />
+
+            <Input
+              label="Password"
+              type="password"
+              placeholder="Enter password"
+              value={form.password}
+              onValueChange={(v) => handleChange("password", v)}
               isRequired
             />
 
@@ -132,14 +171,13 @@ export default function CreateUserAdmin() {
             <Input
               label="Phone Number"
               placeholder="Enter phone number"
-              value={form.phone}
-              onValueChange={(v) => handleChange("phone", v)}
+              value={form.telephone}  // Updated to use "telephone"
+              onValueChange={(v) => handleChange("telephone", v)}  // Updated to update "telephone"
               isRequired
             />
 
             <Select
               label="Role"
-              placeholder="Select a role"
               selectedKeys={form.role ? [form.role] : []}
               onSelectionChange={(keys) =>
                 handleChange("role", Array.from(keys)[0])
@@ -149,14 +187,14 @@ export default function CreateUserAdmin() {
               <SelectItem key="Professor">Professor</SelectItem>
             </Select>
 
+            {/* Student dynamic fields */}
             {form.role === "Student" && (
               <>
                 <Select
                   label="Class"
-                  placeholder="Select class"
-                  selectedKeys={form.classId ? [form.classId] : []}
+                  selectedKeys={form.classe_id ? [form.classe_id] : []}  // Updated to use "classe_id"
                   onSelectionChange={(keys) =>
-                    handleChange("classId", Array.from(keys)[0])
+                    handleChange("classe_id", Array.from(keys)[0])  // Updated to update "classe_id"
                   }
                 >
                   {allClasses.map((cls) => (
@@ -179,11 +217,11 @@ export default function CreateUserAdmin() {
               </>
             )}
 
+            {/* Professor dynamic fields */}
             {form.role === "Professor" && (
               <>
                 <Select
                   label="Classes Taught"
-                  placeholder="Select classes"
                   selectionMode="multiple"
                   selectedKeys={form.classes}
                   onSelectionChange={(keys) =>
@@ -197,7 +235,6 @@ export default function CreateUserAdmin() {
 
                 <Select
                   label="Subjects Taught"
-                  placeholder="Select subjects"
                   selectionMode="multiple"
                   selectedKeys={form.subjects}
                   onSelectionChange={(keys) =>
@@ -216,11 +253,12 @@ export default function CreateUserAdmin() {
             <Button
               variant="flat"
               color="default"
-              onPress={() => navigate("/admin/user-management-admin")}
+              onClick={() => navigate("/admin/user-management-admin")}  // Changed from onPress to onClick
             >
               Cancel
             </Button>
-            <Button color="primary" type="submit">
+
+            <Button color="primary" type="submit" isLoading={loading}>
               Create User
             </Button>
           </CardFooter>
