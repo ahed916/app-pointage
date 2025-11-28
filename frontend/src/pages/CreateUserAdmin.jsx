@@ -1,4 +1,7 @@
-import React, { useState } from "react"; 
+// src/pages/CreateUserAdmin.jsx
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useCreateUserViewModel } from "../viewmodels/useCreateUserViewModel";
 import {
   Input,
   Button,
@@ -10,27 +13,25 @@ import {
   CardHeader,
   Avatar,
 } from "@heroui/react";
-import { useNavigate } from "react-router-dom";
-import { CameraIcon } from "lucide-react";
 
 export default function CreateUserAdmin() {
   const navigate = useNavigate();
+  const { loading, error, createUser } = useCreateUserViewModel(navigate);
 
   const [form, setForm] = useState({
-    nom: "",           // Changed from "name" to "nom"
+    nom: "",
     email: "",
-    CIN: "",
-    telephone: "",     // Changed from "phone" to "telephone"
+    cin: "",
+    telephone: "",
     password: "",
     role: "",
-    classe_id: "",     // Changed from "classId" to "classe_id"
+    classe_id: "",
     classes: [],
     subjects: [],
     photo: null,
   });
 
   const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const allClasses = [
     { id: "L2INFO-TD1", name: "L2INFO-TD1", subjects: ["Java", "Conception", "AI"] },
@@ -55,47 +56,46 @@ export default function CreateUserAdmin() {
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
+    setForm(prev => ({
+      ...prev,
+      photo: file || null // ensure it's File or null
+    }));
     if (file) {
-      setForm({ ...form, photo: file });
       setPreview(URL.createObjectURL(file));
+    } else {
+      setPreview(null);
     }
   };
 
-  const handleSubmit = async (e) => {
+  /**
+   * FINAL submit function (ONLY ONE NOW ✔)
+   */
+   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
+  
     const formData = new FormData();
-    Object.keys(form).forEach((key) => {
-      if (key === "classes" || key === "subjects") {
-        formData.append(key, JSON.stringify(form[key])); // Send as JSON string
-      } else {
-        formData.append(key, form[key]); // Send as string/value
-      }
-    });
-
-    try {
-      const res = await fetch("http://localhost:8000/users/create", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.detail || "Error creating user");
-      } else {
-        alert("✅ User created successfully!");
-        navigate("/admin/user-management-admin");
-      }
-    } catch (err) {
-      alert("Server error.");
-    } finally {
-      setLoading(false);
+    
+    // Append all fields EXCEPT photo first
+    formData.append("nom", form.nom);
+    formData.append("email", form.email);
+    formData.append("cin", form.cin);
+    formData.append("telephone", form.telephone);
+    formData.append("password", form.password);
+    formData.append("role", form.role);
+    formData.append("classe_id", form.classe_id || "");
+    formData.append("classes", JSON.stringify(form.classes));
+    formData.append("subjects", JSON.stringify(form.subjects));
+  
+    // ✅ ONLY append photo if it's a real File object
+    if (form.photo instanceof File) {
+      formData.append("photo", form.photo);
     }
+    // If no photo, don't append the "photo" field at all
+  
+    await createUser(formData);
   };
 
-  const selectedClass = allClasses.find((cls) => cls.id === form.classe_id); // Updated variable name
+  const selectedClass = allClasses.find((cls) => cls.id === form.classe_id);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -116,11 +116,9 @@ export default function CreateUserAdmin() {
                   src={preview || "https://via.placeholder.com/150"}
                   className="w-32 h-32 text-large border-4 border-gray-200 rounded-full"
                 />
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
-                  <CameraIcon className="text-white w-8 h-8" />
-                </div>
               </div>
             </label>
+
             <input
               id="photo-upload"
               type="file"
@@ -137,8 +135,8 @@ export default function CreateUserAdmin() {
             <Input
               label="Full Name"
               placeholder="Enter user's name"
-              value={form.nom}  // Updated to use "nom"
-              onValueChange={(v) => handleChange("nom", v)}  // Updated to update "nom"
+              value={form.nom}
+              onValueChange={(v) => handleChange("nom", v)}
               isRequired
             />
 
@@ -163,16 +161,16 @@ export default function CreateUserAdmin() {
             <Input
               label="CIN"
               placeholder="Enter CIN number"
-              value={form.CIN}
-              onValueChange={(v) => handleChange("CIN", v)}
+              value={form.cin}
+              onValueChange={(v) => handleChange("cin", v)}
               isRequired
             />
 
             <Input
               label="Phone Number"
               placeholder="Enter phone number"
-              value={form.telephone}  // Updated to use "telephone"
-              onValueChange={(v) => handleChange("telephone", v)}  // Updated to update "telephone"
+              value={form.telephone}
+              onValueChange={(v) => handleChange("telephone", v)}
               isRequired
             />
 
@@ -187,14 +185,13 @@ export default function CreateUserAdmin() {
               <SelectItem key="Professor">Professor</SelectItem>
             </Select>
 
-            {/* Student dynamic fields */}
             {form.role === "Student" && (
               <>
                 <Select
                   label="Class"
-                  selectedKeys={form.classe_id ? [form.classe_id] : []}  // Updated to use "classe_id"
+                  selectedKeys={form.classe_id ? [form.classe_id] : []}
                   onSelectionChange={(keys) =>
-                    handleChange("classe_id", Array.from(keys)[0])  // Updated to update "classe_id"
+                    handleChange("classe_id", Array.from(keys)[0])
                   }
                 >
                   {allClasses.map((cls) => (
@@ -217,7 +214,6 @@ export default function CreateUserAdmin() {
               </>
             )}
 
-            {/* Professor dynamic fields */}
             {form.role === "Professor" && (
               <>
                 <Select
@@ -253,7 +249,7 @@ export default function CreateUserAdmin() {
             <Button
               variant="flat"
               color="default"
-              onClick={() => navigate("/admin/user-management-admin")}  // Changed from onPress to onClick
+              onClick={() => navigate("/admin/user-management-admin")}
             >
               Cancel
             </Button>
@@ -263,6 +259,12 @@ export default function CreateUserAdmin() {
             </Button>
           </CardFooter>
         </form>
+
+        {error && (
+          <p className="text-red-500 text-center mt-3">
+            {typeof error === 'string' ? error : JSON.stringify(error)}
+          </p>
+        )}
       </Card>
     </div>
   );

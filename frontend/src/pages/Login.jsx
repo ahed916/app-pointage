@@ -1,51 +1,15 @@
-import React, { useState } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import { GraduationCap } from "lucide-react";
 import isimmLogo from "../assets/isimmLogo.png";
+import { useLoginViewModel } from "../viewmodels/useLoginViewModel";
 
 function Login() {
-  // ✅ Only added states
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const { email, password, error, setEmail, setPassword, login } = useLoginViewModel();
 
-  // ✅ Only added login function
-  const handleLogin = async (e) => {
-    e.preventDefault(); // ✅ Prevent default form submission
-    setError("");
-
-    try {
-      const res = await fetch("http://localhost:8000/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError("⚠️ The user does not exist — verify fields");
-        return;
-      }
-
-      // Save logged user
-      const user =data.user
-      localStorage.setItem("user", JSON.stringify(user));
-
-      // Redirect based on role
-      if (user.role === "admin") {
-        window.location.href = "/admin/dashboard";
-      } 
-      else if (user.role === "Professor") {
-        window.location.href = "/professor/dashboard"; // ← now professors go here
-      } 
-      else if (user.role === "Student") {
-        window.location.href = "/student/dashboard";
-      }
-
-    } catch (err) {
-      setError("⚠️ Server not responding");
-    }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    login(); // délégué au ViewModel
   };
 
   return (
@@ -70,16 +34,13 @@ function Login() {
           </motion.div>
         </div>
 
-        {/* RIGHT SIDE — unchanged except small logic additions */}
+        {/* RIGHT SIDE — UI only */}
         <div className="lg:w-5/12 w-full flex flex-col justify-center items-center p-10 bg-gray-50/70">
           <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">
             Sign in to your account
           </h2>
 
-          {/* ✅ Added onSubmit */}
-          <form className="w-full max-w-sm space-y-6" onSubmit={handleLogin}>
-
-            {/* email field — ONLY added onChange */}
+          <form className="w-full max-w-sm space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Adresse email
@@ -92,11 +53,11 @@ function Login() {
                 autoComplete="email"
                 placeholder="example@isimm.tn"
                 className="mt-2 w-full rounded-lg border border-gray-300 bg-white/80 px-4 py-2.5 text-gray-900"
+                value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
-            {/* password field — ONLY added onChange */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Mot de passe
@@ -109,27 +70,23 @@ function Login() {
                 autoComplete="current-password"
                 placeholder="Your password"
                 className="mt-2 w-full rounded-lg border border-gray-300 bg-white/80 px-4 py-2.5 text-gray-900"
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
-            {/* ✅ Only added this error block */}
-            {error && (
-              <p className="text-red-600 text-sm text-center">{error}</p>
-            )}
+            {error && <p className="text-red-600 text-sm text-center">{error}</p>}
 
-            {/* Button — unchanged */}
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
+              type="submit"
               className="w-full py-2.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-600 text-white font-semibold shadow-md"
             >
               Connect
             </motion.button>
-
           </form>
         </div>
-
       </motion.div>
     </div>
   );

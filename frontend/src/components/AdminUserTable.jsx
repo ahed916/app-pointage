@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   Table,
   TableHeader,
@@ -18,24 +18,24 @@ import {
 import { useNavigate } from "react-router-dom";
 
 export const columns = [
-  {name: "ID", uid: "id", sortable: true},
-  {name: "NAME", uid: "name", sortable: true},
-  {name: "ROLE", uid: "role", sortable: true},
-  {name:"CLASS(ES)", uid:"classes",sortable:true},
-  {name: "EMAIL", uid: "email"},
-  {name: "ACTIONS", uid: "actions"},
+  { name: "ID", uid: "id", sortable: true },
+  { name: "NAME", uid: "name", sortable: true },
+  { name: "ROLE", uid: "role", sortable: true },
+  { name: "CLASS(ES)", uid: "classes", sortable: true },
+  { name: "EMAIL", uid: "email" },
+  { name: "ACTIONS", uid: "actions" },
 ];
 
 export const roleOptions = [
-  {name: "Professor", uid: "Professor"},
-  {name: "Student", uid: "Student"},
+  { name: "Professor", uid: "Professor" },
+  { name: "Student", uid: "Student" },
 ];
 
 export function capitalize(s) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "";
 }
 
-export const PlusIcon = ({size = 24, width, height, ...props}) => {
+export const PlusIcon = ({ size = 24, width, height, ...props }) => {
   return (
     <svg
       aria-hidden="true"
@@ -61,7 +61,7 @@ export const PlusIcon = ({size = 24, width, height, ...props}) => {
   );
 };
 
-export const VerticalDotsIcon = ({size = 24, width, height, ...props}) => {
+export const VerticalDotsIcon = ({ size = 24, width, height, ...props }) => {
   return (
     <svg
       aria-hidden="true"
@@ -111,7 +111,7 @@ export const SearchIcon = (props) => {
   );
 };
 
-export const ChevronDownIcon = ({strokeWidth = 1.5, ...otherProps}) => {
+export const ChevronDownIcon = ({ strokeWidth = 1.5, ...otherProps }) => {
   return (
     <svg
       aria-hidden="true"
@@ -135,59 +135,44 @@ export const ChevronDownIcon = ({strokeWidth = 1.5, ...otherProps}) => {
   );
 };
 
-const INITIAL_VISIBLE_COLUMNS = ["id", "name", "role", "classes","email",  "actions"];
+const INITIAL_VISIBLE_COLUMNS = ["id", "name", "role", "classes", "email", "actions"];
 
-export default function AdminUserTable() {
+export default function AdminUserTable({ users = [], loading = false, error = null, onUserAction }) {
   const navigate = useNavigate();
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  
-  const [filterValue, setFilterValue] = React.useState("");
-  const [selectedKeys, setSelectedKeys] = React.useState(new Set([]));
-  const [visibleColumns, setVisibleColumns] = React.useState(new Set(INITIAL_VISIBLE_COLUMNS));
-  const [roleFilter, setRoleFilter] = React.useState(new Set(roleOptions.map(r => r.uid)));
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [sortDescriptor, setSortDescriptor] = React.useState({
+
+  // UI state only (local to this component)
+  const [filterValue, setFilterValue] = useState("");
+  const [selectedKeys, setSelectedKeys] = useState(new Set([]));
+  const [visibleColumns, setVisibleColumns] = useState(new Set(INITIAL_VISIBLE_COLUMNS));
+  const [roleFilter, setRoleFilter] = useState(new Set(roleOptions.map(r => r.uid)));
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [sortDescriptor, setSortDescriptor] = useState({
     column: "id",
     direction: "ascending",
   });
-  const [page, setPage] = React.useState(1);
+  const [page, setPage] = useState(1);
 
-  // Fetch users from backend
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch("http://localhost:8000/users/");
-        const data = await res.json();
-        setUsers(data);
-      } catch (err) {
-        console.error("Error fetching users:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsers();
-  }, []);
+  // Handle loading/error from ViewModel
+  
 
   const hasSearchFilter = Boolean(filterValue);
 
-  const headerColumns = React.useMemo(() => {
+  const headerColumns = useMemo(() => {
     if (visibleColumns === "all") return columns;
-
     return columns.filter((column) => Array.from(visibleColumns).includes(column.uid));
   }, [visibleColumns]);
 
-  const filteredItems = React.useMemo(() => {
+  const filteredItems = useMemo(() => {
     let filteredUsers = [...users];
 
     if (hasSearchFilter) {
       filteredUsers = filteredUsers.filter((user) =>
-        user.name.toLowerCase().includes(filterValue.toLowerCase()),
+        user.name?.toLowerCase().includes(filterValue.toLowerCase())
       );
     }
     if (roleFilter.size !== roleOptions.length) {
       filteredUsers = filteredUsers.filter((user) =>
-        roleFilter.has(user.role),
+        roleFilter.has(user.role)
       );
     }
 
@@ -196,31 +181,29 @@ export default function AdminUserTable() {
 
   const pages = Math.ceil(filteredItems.length / rowsPerPage) || 1;
 
-  const items = React.useMemo(() => {
+  const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-
     return filteredItems.slice(start, end);
   }, [page, filteredItems, rowsPerPage]);
 
-  const sortedItems = React.useMemo(() => {
+  const sortedItems = useMemo(() => {
     return [...items].sort((a, b) => {
       const first = a[sortDescriptor.column];
       const second = b[sortDescriptor.column];
       const cmp = first < second ? -1 : first > second ? 1 : 0;
-
       return sortDescriptor.direction === "descending" ? -cmp : cmp;
     });
   }, [sortDescriptor, items]);
 
-  const renderCell = React.useCallback((user, columnKey) => {
+  const renderCell = useCallback((user, columnKey) => {
     const cellValue = user[columnKey];
 
     switch (columnKey) {
       case "name":
         return (
           <User
-            avatarProps={{radius: "lg", src: user.avatar}}
+            avatarProps={{ radius: "lg", src: user.avatar }}
             description={user.email}
             name={cellValue}
           >
@@ -245,48 +228,49 @@ export default function AdminUserTable() {
               <DropdownMenu>
                 <DropdownItem key="view">View</DropdownItem>
                 <DropdownItem key="edit">Edit</DropdownItem>
-                <DropdownItem key="delete">Delete</DropdownItem>
+                <DropdownItem
+                  key="delete"
+                  onPress={async () => {
+                    // Example: call a delete function from ViewModel via props
+                    // await onDeleteUser(user.id);
+                    // if (onUserAction) onUserAction(); // to refetch
+                  }}
+                >
+                  Delete
+                </DropdownItem>
               </DropdownMenu>
             </Dropdown>
           </div>
         );
       default:
-        return cellValue;
+        return cellValue ?? "";
     }
   }, []);
 
-  const onNextPage = React.useCallback(() => {
-    if (page < pages) {
-      setPage(page + 1);
-    }
+  const onNextPage = useCallback(() => {
+    if (page < pages) setPage(page + 1);
   }, [page, pages]);
 
-  const onPreviousPage = React.useCallback(() => {
-    if (page > 1) {
-      setPage(page - 1);
-    }
+  const onPreviousPage = useCallback(() => {
+    if (page > 1) setPage(page - 1);
   }, [page]);
 
-  const onRowsPerPageChange = React.useCallback((e) => {
+  const onRowsPerPageChange = useCallback((e) => {
     setRowsPerPage(Number(e.target.value));
     setPage(1);
   }, []);
 
-  const onSearchChange = React.useCallback((value) => {
-    if (value) {
-      setFilterValue(value);
-      setPage(1);
-    } else {
-      setFilterValue("");
-    }
+  const onSearchChange = useCallback((value) => {
+    setFilterValue(value);
+    setPage(1);
   }, []);
 
-  const onClear = React.useCallback(() => {
+  const onClear = useCallback(() => {
     setFilterValue("");
     setPage(1);
   }, []);
 
-  const topContent = React.useMemo(() => {
+  const topContent = useMemo(() => {
     return (
       <div className="flex flex-col gap-4">
         <div className="flex justify-between gap-3 items-end">
@@ -296,7 +280,7 @@ export default function AdminUserTable() {
             placeholder="Search by name..."
             startContent={<SearchIcon />}
             value={filterValue}
-            onClear={() => onClear()}
+            onClear={onClear}
             onValueChange={onSearchChange}
           />
           <div className="flex gap-3">
@@ -342,7 +326,11 @@ export default function AdminUserTable() {
                 ))}
               </DropdownMenu>
             </Dropdown>
-            <Button color="primary" endContent={<PlusIcon />} onPress={() => navigate("/admin/create-user")}>
+            <Button
+              color="primary"
+              endContent={<PlusIcon />}
+              onPress={() => navigate("/admin/create-user")}
+            >
               Add New
             </Button>
           </div>
@@ -370,10 +358,10 @@ export default function AdminUserTable() {
     onRowsPerPageChange,
     users.length,
     onSearchChange,
-    hasSearchFilter,
+    onClear,
   ]);
 
-  const bottomContent = React.useMemo(() => {
+  const bottomContent = useMemo(() => {
     return (
       <div className="py-2 px-2 flex justify-between items-center">
         <span className="w-[30%] text-small text-default-400">
@@ -400,17 +388,19 @@ export default function AdminUserTable() {
         </div>
       </div>
     );
-  }, [selectedKeys, items.length, page, pages, hasSearchFilter]);
-
-  if (loading) {
-    return (
-      <div className="p-6 bg-gray-50 min-h-screen flex items-center justify-center">
-        <p>Loading users...</p>
-      </div>
-    );
-  }
+  }, [selectedKeys, filteredItems.length, page, pages, onPreviousPage, onNextPage]);
 
   return (
+    <>
+     {loading ? (
+      <div className="p-6 bg-gray-50 min-h-[400px] flex items-center justify-center">
+        <p>Loading users...</p>
+      </div>
+    ) : error ? (
+      <div className="p-6 bg-gray-50 min-h-[400px] flex items-center justify-center">
+        <p className="text-red-600">Error: {error}</p>
+      </div>
+    ) : (
     <Table
       isHeaderSticky
       aria-label="Example table with custom cells, pagination and sorting"
@@ -446,5 +436,7 @@ export default function AdminUserTable() {
         )}
       </TableBody>
     </Table>
+    )}
+    </>
   );
 }
