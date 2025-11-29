@@ -11,7 +11,7 @@ import DashboardAdmin from './pages/DashboardAdmin';
 import UserManagementAdmin from './pages/UserManagementAdmin';
 import ClassManagementAdmin from './pages/ClassManagementAdmin';
 import CreateUserAdmin from './pages/CreateUserAdmin';
-
+import DeleteUserAdmin from "./pages/DeleteUserAdmin";
 function App() {
   return (
     <div>
@@ -26,6 +26,8 @@ function App() {
           <Route path="user-management-admin" element={<UserManagementAdmin/>} />
           <Route path="class-management-admin" element={<ClassManagementAdmin/>} />
           <Route path="create-user" element={<CreateUserAdmin/>} />
+          <Route path="/admin/delete-user/:id" element={<DeleteUserAdmin />} />
+
         </Route>
       </Routes>
     </div>

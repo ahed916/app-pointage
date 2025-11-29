@@ -11,3 +11,5 @@ if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE:
     raise RuntimeError("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE in env")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE)
+def get_supabase_client():
+    return supabase

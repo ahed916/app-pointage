@@ -8,6 +8,7 @@ from models.schemas import UserCreate, UserListResponse
 from utils.storage import upload_avatar
 
 
+
 def create_user_in_db(user_data: UserCreate, photo_url: Optional[str] = None):
     # Hachage du mot de passe
     hashed = bcrypt.hashpw(user_data.password.encode(), bcrypt.gensalt()).decode()

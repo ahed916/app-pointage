@@ -230,11 +230,7 @@ export default function AdminUserTable({ users = [], loading = false, error = nu
                 <DropdownItem key="edit">Edit</DropdownItem>
                 <DropdownItem
                   key="delete"
-                  onPress={async () => {
-                    // Example: call a delete function from ViewModel via props
-                    // await onDeleteUser(user.id);
-                    // if (onUserAction) onUserAction(); // to refetch
-                  }}
+                  onPress={() => navigate(`/admin/delete-user/${user.id}`)}
                 >
                   Delete
                 </DropdownItem>
